@@ -3,8 +3,9 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Gloock&family=Karla:wght@400;500;700&display=swap">
 <style>
-/* Layout: an arch-framed crochet bouquet beside a small builder (count + yarn colour),
-   then a bouquet shelf and an order-message maker. Dashed "stitch" seams are the recurring motif. */
+/* Layout: arch-framed crochet bouquet beside a small builder (count + yarn colour), a stitched
+   ribbon strip, a bouquet shelf (swipeable on phones) and an order-message maker.
+   Dashed "stitch" seams are the recurring motif. Motion: bloom-in, idle sway, drifting petals. */
 :root {
   --bg: #F8ECEF;
   --paper: #FDF7F8;
@@ -17,6 +18,8 @@
   --tint-b: #F7E4AE;
   --tint-c: #E2D2F0;
   --tint-d: #D3E5D5;
+  --gutl: max(16px, env(safe-area-inset-left, 0px));
+  --gutr: max(16px, env(safe-area-inset-right, 0px));
   --display: 'Gloock', Georgia, 'Times New Roman', serif;
   --body: 'Karla', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --hand: 'Caveat', 'Segoe Script', cursive;
@@ -58,91 +61,119 @@ body {
   color: var(--fg);
   font: 400 17px/1.6 var(--body);
   padding-block: 0;
+  overflow-x: hidden;
 }
 h1, h2, h3, p { margin: 0; }
 button, input, select, textarea { font: inherit; color: inherit; }
 :focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
 
-.wrap {
-  max-width: 1160px;
-  margin-inline: auto;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-}
+.wrap { max-width: 1160px; margin-inline: auto; padding-left: var(--gutl); padding-right: var(--gutr); }
 
 /* header */
-.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 22px; flex-wrap: wrap; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 20px; }
 .brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-size: 1.5rem; line-height: 1; text-decoration: none; color: var(--fg); }
-.brand .logo { width: 38px; height: 38px; flex: none; }
+.brand .logo { width: 38px; height: 38px; flex: none; transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.brand:hover .logo { transform: rotate(60deg) scale(1.08); }
 .brand em { font-style: normal; color: var(--accent); }
 .nav { display: flex; gap: 22px; font-weight: 500; }
-.nav a { color: var(--fg); text-decoration: none; padding-block: 4px; border-bottom: 2px dashed var(--line); }
+.nav a { color: var(--fg); text-decoration: none; padding-block: 8px; border-bottom: 2px dashed var(--line); }
 .nav a:hover { border-bottom-color: var(--accent); }
 
 /* hero */
-.hero { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: clamp(28px, 5vw, 72px); align-items: center; padding-block: clamp(20px, 4vw, 48px) clamp(40px, 6vw, 80px); }
-.copy { min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+.heroband { position: relative; overflow: hidden; }
+.petals { position: absolute; inset: 0; pointer-events: none; overflow: hidden; container-type: size; }
+.petal { position: absolute; top: 0; left: var(--x); width: var(--s); height: calc(var(--s) * 1.2); opacity: 0.28; animation: fall var(--t) linear infinite; animation-delay: var(--dl); }
+.petal svg { display: block; width: 100%; height: 100%; fill: var(--accent); animation: flutter var(--sp) ease-in-out infinite alternate; }
+@keyframes fall { from { transform: translate3d(0, -40px, 0); } to { transform: translate3d(var(--dx), 700px, 0); } }
+@supports (height: 1cqh) { @keyframes fall { from { transform: translate3d(0, -8cqh, 0); } to { transform: translate3d(var(--dx), 104cqh, 0); } } }
+@keyframes flutter { from { transform: rotate(-45deg) scaleX(0.8); } to { transform: rotate(45deg) scaleX(1); } }
+
+.hero { position: relative; z-index: 1; display: grid; grid-template-columns: 1.05fr 0.95fr; grid-template-areas: "intro art" "builder art"; align-content: center; gap: 24px clamp(28px, 5vw, 72px); padding-block: clamp(16px, 4vw, 44px) clamp(40px, 6vw, 80px); }
+.intro { grid-area: intro; min-width: 0; display: flex; flex-direction: column; gap: 20px; align-self: end; }
+.builder { grid-area: builder; min-width: 0; display: flex; flex-direction: column; gap: 18px; align-self: start; }
+.art { grid-area: art; min-width: 0; width: 100%; max-width: 470px; justify-self: end; display: flex; flex-direction: column; gap: 10px; }
+.intro > *, .builder, .art { animation: rise 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 90ms); }
+@keyframes rise { from { transform: translateY(18px); } to { transform: none; } }
+
 .eyebrow { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); }
-h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2.5rem, 6.2vw, 4.5rem); line-height: 1.02; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2.3rem, 6.2vw, 4.5rem); line-height: 1.02; letter-spacing: -0.01em; text-wrap: balance; }
 h1 span { color: var(--accent); }
 .lede { max-width: 52ch; color: var(--muted); font-size: 1.1rem; }
 
-.builder { display: flex; flex-direction: column; gap: 18px; padding-top: 8px; }
 .lbl { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: block; }
 .lbl b { color: var(--fg); letter-spacing: 0.04em; }
 .seg { display: inline-flex; flex-wrap: wrap; border: 1.5px solid var(--fg); border-radius: 999px; padding: 3px; gap: 3px; }
-.seg button { border: 0; background: transparent; padding: 9px 18px; border-radius: 999px; cursor: pointer; font-weight: 500; font-variant-numeric: tabular-nums; }
+.seg button { border: 0; background: transparent; padding: 10px 18px; border-radius: 999px; cursor: pointer; font-weight: 500; font-variant-numeric: tabular-nums; transition: background 0.25s, color 0.25s; }
 .seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
 .swatches { display: flex; flex-wrap: wrap; gap: 12px; }
-.sw { width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--paper); background: var(--c); box-shadow: 0 0 0 1.5px var(--line); cursor: pointer; padding: 0; }
-.sw[aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--fg); }
+.sw { width: 38px; height: 38px; border-radius: 50%; border: 3px solid var(--paper); background: var(--c); box-shadow: 0 0 0 1.5px var(--line); cursor: pointer; padding: 0; transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1.4), box-shadow 0.25s; }
+.sw:hover { transform: scale(1.12); }
+.sw[aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--fg); transform: scale(1.08); }
 .buy { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; padding-top: 4px; }
 .price { display: flex; flex-direction: column; line-height: 1; }
-.price strong { font-family: var(--display); font-weight: 400; font-size: 3.2rem; font-variant-numeric: tabular-nums; }
+.price strong { font-family: var(--display); font-weight: 400; font-size: 3.2rem; font-variant-numeric: tabular-nums; display: inline-block; transform-origin: left bottom; }
+.price strong.bump { animation: bump 0.45s cubic-bezier(0.2, 0.8, 0.2, 1.4); }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.14); } 100% { transform: scale(1); } }
 .price span { color: var(--muted); font-size: 0.9rem; margin-top: 6px; }
 
-.btn, .ghost { position: relative; border-radius: 999px; cursor: pointer; font-weight: 700; padding: 13px 26px; }
+.btn, .ghost { position: relative; border-radius: 999px; cursor: pointer; font-weight: 700; padding: 13px 26px; min-height: 48px; transition: transform 0.2s ease, filter 0.2s ease, background 0.2s, color 0.2s; }
 .btn { background: var(--accent); color: var(--accent-ink); border: 0; }
 .btn::after { content: ""; position: absolute; inset: 4px; border: 1.5px dashed color-mix(in srgb, var(--accent-ink) 65%, transparent); border-radius: 999px; pointer-events: none; }
-.btn:hover { filter: brightness(1.06); }
-a.btn { display: inline-block; text-decoration: none; }
-.ghost { background: transparent; border: 1.5px solid var(--fg); padding: 9px 20px; font-weight: 500; }
+.btn:hover { filter: brightness(1.07); transform: translateY(-2px); }
+.btn:active, .ghost:active { transform: scale(0.97); }
+a.btn { display: inline-flex; align-items: center; text-decoration: none; }
+.ghost { background: transparent; border: 1.5px solid var(--fg); padding: 9px 20px; font-weight: 500; min-height: 44px; }
 .ghost:hover { background: var(--fg); color: var(--bg); }
 
-.art { min-width: 0; width: 100%; max-width: 470px; justify-self: end; display: flex; flex-direction: column; gap: 10px; }
 .arch { position: relative; background: var(--tint-a); border-radius: 999px 999px 26px 26px; padding: 11% 7% 5%; aspect-ratio: 1 / 1.1; }
 .arch::after { content: ""; position: absolute; inset: 10px; border: 2px dashed color-mix(in srgb, var(--accent) 55%, transparent); border-radius: 999px 999px 18px 18px; pointer-events: none; }
-.arch svg { display: block; width: 100%; height: 100%; }
+.arch svg { display: block; width: 100%; height: 100%; transform-origin: 50% 92%; animation: sway 7s ease-in-out infinite; }
+@keyframes sway { 0%, 100% { transform: rotate(-1.1deg); } 50% { transform: rotate(1.1deg); } }
 .hand { font-family: var(--hand); font-size: 1.5rem; color: var(--accent); text-align: right; transform: rotate(-2deg); }
 
 .fl { transform-box: fill-box; transform-origin: center; }
-.pop .fl { animation: pop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.25) both; animation-delay: var(--d, 0ms); }
-@keyframes pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.pop .fl { animation: pop 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.25) both; animation-delay: var(--d, 0ms); }
+@keyframes pop { from { transform: scale(0.5) rotate(-24deg); } to { transform: none; } }
+@keyframes wiggle { 0% { transform: none; } 30% { transform: rotate(-7deg) scale(1.05); } 65% { transform: rotate(5deg) scale(1.03); } 100% { transform: none; } }
+
+/* ribbon strip */
+.strip { border-block: 2px dashed var(--line); background: var(--paper); overflow: hidden; padding-block: 14px; }
+.track { display: flex; width: max-content; animation: slide 36s linear infinite; }
+.track span { display: flex; align-items: center; gap: 22px; padding-right: 22px; font-family: var(--display); font-size: 1.3rem; white-space: nowrap; }
+@keyframes slide { to { transform: translateX(-50%); } }
 
 /* facts */
-.facts { border-block: 2px dashed var(--line); padding-block: 36px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+.facts { padding-block: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
 .fact { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .fact h3 { font-family: var(--display); font-weight: 400; font-size: 1.4rem; }
 .fact p { color: var(--muted); }
 
+/* reveal on scroll: starts offset but always visible */
+.rv { transform: translateY(28px) scale(0.985); transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: var(--rd, 0ms); }
+.rv.in { transform: none; }
+
 /* shelf */
-.sec { padding-block: clamp(44px, 7vw, 88px); }
-.sec-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: clamp(28px, 4vw, 44px); max-width: 60ch; }
-h2 { font-family: var(--display); font-weight: 400; font-size: clamp(2rem, 4.6vw, 3.2rem); line-height: 1.05; text-wrap: balance; }
+.sec { padding-block: clamp(40px, 7vw, 88px); }
+.sec-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: clamp(24px, 4vw, 44px); max-width: 60ch; }
+h2 { font-family: var(--display); font-weight: 400; font-size: clamp(1.9rem, 4.6vw, 3.2rem); line-height: 1.05; text-wrap: balance; }
 .sec-head p { color: var(--muted); }
 .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 36px 26px; }
 .card { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
 .cardart { background: var(--tint); border-radius: 999px 999px 18px 18px; padding: 14% 8% 5%; aspect-ratio: 1 / 1.08; overflow: hidden; }
-.cardart svg { display: block; width: 100%; height: 100%; transition: transform 0.35s ease; }
-.card:hover .cardart svg { transform: translateY(-4px) rotate(-1.2deg); }
+.cardart svg { display: block; width: 100%; height: 100%; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.card:hover .cardart svg { transform: translateY(-4px) scale(1.03); }
+.card:hover .fl { animation: wiggle 0.7s ease both; animation-delay: var(--d, 0ms); }
 .cardbody { display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .crow { display: flex; justify-content: space-between; align-items: baseline; gap: 6px 12px; flex-wrap: wrap; }
 .card h3 { font-family: var(--display); font-weight: 400; font-size: 1.35rem; line-height: 1.15; }
 .cprice { font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
-.cprice.ask { color: var(--muted); font-weight: 500; font-size: 0.9rem; }
+.cprice.ask { color: var(--muted); font-weight: 500; }
 .meta { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
 .desc { color: var(--muted); font-size: 0.98rem; flex: 1; }
 .card .ghost { align-self: flex-start; margin-top: 6px; }
+.dots { display: none; justify-content: center; gap: 8px; padding-top: 6px; }
+.dots span { width: 8px; height: 8px; border-radius: 999px; background: var(--line); transition: width 0.3s, background 0.3s; }
+.dots span.on { width: 24px; background: var(--accent); }
 
 /* order */
 .order { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: clamp(28px, 5vw, 72px); align-items: start; }
@@ -155,31 +186,59 @@ h2 { font-family: var(--display); font-weight: 400; font-size: clamp(2rem, 4.6vw
 .form .full { grid-column: 1 / -1; }
 .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .field label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-.field input, .field select, .field textarea { width: 100%; background: var(--bg); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.field input, .field select, .field textarea { width: 100%; background: var(--bg); border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 16px; min-height: 48px; }
 .field textarea { resize: vertical; min-height: 84px; }
 .field textarea[readonly] { min-height: 150px; background: color-mix(in srgb, var(--accent) 8%, var(--bg)); }
-.copyrow { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.status { color: var(--muted); font-size: 0.95rem; }
+.copyrow { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.status { color: var(--muted); font-size: 0.95rem; flex-basis: 100%; }
 
 footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-top: 8px; }
 .foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; color: var(--muted); }
 
+/* phone order bar */
+.bar { display: none; }
+
 @media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 820px) {
-  .hero { grid-template-columns: 1fr; }
-  .art { justify-self: center; }
+  .hero { grid-template-columns: 1fr; grid-template-areas: "intro" "art" "builder"; gap: 22px; padding-top: 6px; }
+  .intro, .builder { align-self: stretch; }
+  .art { justify-self: center; max-width: 380px; }
+  .arch { aspect-ratio: 1 / 1.04; }
   .order { grid-template-columns: 1fr; }
-  .facts { grid-template-columns: 1fr; gap: 22px; }
+  .facts { grid-template-columns: 1fr; gap: 22px; padding-block: 32px; }
 }
-@media (max-width: 560px) {
-  .grid { grid-template-columns: 1fr; }
+@media (max-width: 720px) {
+  body { padding-bottom: 84px; }
+  .top { padding-block: 14px; }
+  .brand { font-size: 1.35rem; }
+  .brand .logo { width: 34px; height: 34px; }
+  .nav { gap: 18px; font-size: 0.95rem; }
+  .seg { display: flex; width: 100%; }
+  .seg button { flex: 1; padding: 13px 8px; }
+  .sw { width: 44px; height: 44px; }
+  .swatches { gap: 10px; }
+  .buy { gap: 16px; }
+  .price strong { font-size: 2.6rem; }
+  .strip { padding-block: 11px; }
+  .track span { font-size: 1.12rem; }
+  .grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 16px; margin-right: calc(-1 * var(--gutr)); padding-right: var(--gutr); padding-bottom: 6px; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .grid::-webkit-scrollbar { display: none; }
+  .card { flex: 0 0 min(76vw, 300px); scroll-snap-align: start; }
+  .dots { display: flex; }
   .form { grid-template-columns: 1fr; }
-  .nav { gap: 16px; }
+  .copyrow .btn, .copyrow .ghost { flex: 1 1 100%; justify-content: center; text-align: center; }
+  .bar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; align-items: center; justify-content: space-between; gap: 14px; background: var(--paper); border-top: 2px dashed var(--line); padding: 10px var(--gutr) calc(10px + env(safe-area-inset-bottom, 0px)) var(--gutl); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .bar.hide { transform: translateY(110%); }
+  .barinfo { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .barinfo strong { font-family: var(--display); font-weight: 400; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+  .barinfo span { color: var(--muted); font-size: 0.85rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pop .fl { animation: none; }
-  .cardart svg { transition: none; }
-  .card:hover .cardart svg { transform: none; }
+  .petals { display: none; }
+  .track, .arch svg, .intro > *, .builder, .art, .pop .fl, .price strong.bump, .card:hover .fl { animation: none; }
+  .rv { transform: none; transition: none; }
+  .cardart svg, .sw, .btn, .brand .logo { transition: none; }
+  .card:hover .cardart svg, .btn:hover, .sw:hover, .brand:hover .logo { transform: none; }
 }
 </style>
 
@@ -197,12 +256,15 @@ footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-to
 </header>
 
 <main id="top">
-  <section class="wrap hero">
-    <div class="copy">
-      <p class="eyebrow">Handmade crochet bouquets</p>
-      <h1>Roses hooked by hand, <span>in bloom</span> for good.</h1>
-      <p class="lede">Every petal is crocheted from soft yarn, then wrapped and tied like a fresh bouquet. Pick how many roses and which colour, and we will make it for you.</p>
-      <div class="builder">
+  <div class="heroband">
+    <div class="petals" id="petals" aria-hidden="true"></div>
+    <section class="wrap hero">
+      <div class="intro">
+        <p class="eyebrow" style="--i:0">Handmade crochet bouquets</p>
+        <h1 style="--i:1">Roses hooked by hand, <span>in bloom</span> for good.</h1>
+        <p class="lede" style="--i:2">Every petal is crocheted from soft yarn, then wrapped and tied like a fresh bouquet. Pick how many roses and which colour, and we will make it for you.</p>
+      </div>
+      <div class="builder" style="--i:3">
         <div>
           <span class="lbl" id="lblCount">Roses in the bouquet</span>
           <div class="seg" role="group" aria-labelledby="lblCount" id="seg"></div>
@@ -211,37 +273,40 @@ footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-to
           <span class="lbl" id="lblColour">Yarn colour: <b id="colourName">Blush</b></span>
           <div class="swatches" role="group" aria-labelledby="lblColour" id="swatches"></div>
         </div>
-        <div class="buy">
+        <div class="buy" id="buy">
           <div class="price"><strong id="price">₹499</strong><span id="priceSub">5 roses, wrapped and ribboned</span></div>
           <button class="btn" id="heroOrder" type="button">Order this bouquet</button>
         </div>
       </div>
-    </div>
-    <div class="art">
-      <div class="arch" id="heroArt"></div>
-      <p class="hand">every bouquet is made to order</p>
-    </div>
-  </section>
+      <div class="art" style="--i:1">
+        <div class="arch" id="heroArt"></div>
+        <p class="hand">every bouquet is made to order</p>
+      </div>
+    </section>
+  </div>
+
+  <div class="strip" aria-hidden="true"><div class="track" id="track"></div></div>
 
   <div class="wrap">
     <div class="facts">
-      <div class="fact"><h3>Never wilts</h3><p>Yarn does not droop or drop petals, so your bouquet looks the same next year.</p></div>
-      <div class="fact"><h3>Made in your colours</h3><p>Choose the shade of your roses and we hook the bouquet to match.</p></div>
-      <div class="fact"><h3>Ready to gift</h3><p>Each bouquet comes wrapped in paper and tied with a ribbon.</p></div>
+      <div class="fact rv"><h3>Never wilts</h3><p>Yarn does not droop or drop petals, so your bouquet looks the same next year.</p></div>
+      <div class="fact rv" style="--rd:100ms"><h3>Made in your colours</h3><p>Choose the shade of your roses and we hook the bouquet to match.</p></div>
+      <div class="fact rv" style="--rd:200ms"><h3>Ready to gift</h3><p>Each bouquet comes wrapped in paper and tied with a ribbon.</p></div>
     </div>
   </div>
 
-  <section class="wrap sec" id="bouquets">
-    <div class="sec-head">
+  <section class="wrap sec" id="bouquets" style="padding-top:clamp(24px,4vw,48px)">
+    <div class="sec-head rv">
       <h2>Pick a bouquet</h2>
       <p>Our two rose bouquets have set prices. Message us for the price of any other bouquet and we will confirm it before we start.</p>
     </div>
     <div class="grid" id="grid"></div>
+    <div class="dots" id="dots" aria-hidden="true"></div>
   </section>
 
   <section class="wrap sec" id="order" style="padding-top:0">
     <div class="order">
-      <div>
+      <div class="rv">
         <h2>Ready to order?</h2>
         <ol class="steps">
           <li><span><b>Choose your bouquet.</b> Pick the bouquet and a yarn colour in the form.</span></li>
@@ -249,7 +314,7 @@ footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-to
           <li><span><b>Send it on WhatsApp.</b> Message +91 70939 77162 and we reply to confirm the price, timing and delivery.</span></li>
         </ol>
       </div>
-      <form class="form" id="orderForm" autocomplete="off">
+      <form class="form rv" style="--rd:120ms" id="orderForm" autocomplete="off">
         <div class="field">
           <label for="selB">Bouquet</label>
           <select id="selB"></select>
@@ -283,21 +348,21 @@ footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-to
 <footer class="wrap">
   <div class="foot">
     <span class="brand" style="font-size:1.2rem">Ivys <em>&amp;</em> Roses</span>
-    <span>WhatsApp +91 70939 77162 · Crocheted by hand with yarn and patience. © 2026</span>
+    <span>Crocheted by hand with yarn and patience. © 2026</span>
   </div>
 </footer>
 
+<div class="bar" id="bar" role="region" aria-label="Quick order">
+  <div class="barinfo"><strong id="barPrice">₹499</strong><span id="barSub">5 roses · Blush</span></div>
+  <button class="btn" id="barOrder" type="button">Order now</button>
+</div>
+
 <script>
 (function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
   /* ---------- symbols ---------- */
-  var ring = function (n, R, r, off) {
-    var o = '';
-    for (var i = 0; i < n; i++) {
-      var a = (off + i * 360 / n) * Math.PI / 180;
-      o += '<circle cx="' + (50 + R * Math.cos(a)).toFixed(1) + '" cy="' + (50 + R * Math.sin(a)).toFixed(1) + '" r="' + r + '"/>';
-    }
-    return o;
-  };
   var petals = function (n, off, attrs) {
     var o = '';
     for (var i = 0; i < n; i++) {
@@ -305,14 +370,22 @@ footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-to
     }
     return o;
   };
-  /* a layer of overlapping rounded petals: darker rim underneath, lighter face on top */
+  /* a layer of overlapping rounded petals: dark rim underneath, lighter stitched face and a yarn sheen on top */
   var petal = function (n, off, cy, rx, ry, fcy, frx, fry) {
     var o = '';
     for (var i = 0; i < n; i++) {
       o += '<g transform="rotate(' + (off + i * 360 / n).toFixed(1) + ' 50 50)">' +
         '<ellipse cx="50" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '" fill="var(--r2,#E4819B)" stroke="var(--r3,#B8456A)" stroke-width="1.2"/>' +
         '<ellipse cx="50" cy="' + fcy + '" rx="' + frx + '" ry="' + fry + '" fill="var(--r1,#F4AFC0)" stroke="var(--r3,#B8456A)" stroke-width="1" stroke-opacity=".55" stroke-dasharray="1.4 2.6" stroke-linecap="round"/>' +
+        '<ellipse cx="' + (50 - frx * 0.18) + '" cy="' + (fcy - fry * 0.52) + '" rx="' + (frx * 0.5) + '" ry="' + (fry * 0.2) + '" fill="#fff" opacity=".3"/>' +
         '</g>';
+    }
+    return o;
+  };
+  var dline = function (n, y1, y2, stroke) {
+    var o = '';
+    for (var i = 0; i < n; i++) {
+      o += '<path d="M50 ' + y1 + 'L50 ' + y2 + '" transform="rotate(' + (i * 360 / n).toFixed(1) + ' 50 50)" fill="none" stroke="' + stroke + '" stroke-width="1" stroke-dasharray="1.4 2.6" stroke-linecap="round"/>';
     }
     return o;
   };
@@ -322,13 +395,24 @@ footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-to
     buds += '<ellipse cx="10.5" cy="' + y + '" rx="4.4" ry="3.4" transform="rotate(-25 10.5 ' + y + ')"/>' +
             '<ellipse cx="19.5" cy="' + (y + 3) + '" rx="4.4" ry="3.4" transform="rotate(25 19.5 ' + (y + 3) + ')"/>';
   }
+  var baby = '';
+  [[-36, 0.9], [-20, 1], [-6, 0.82], [8, 0.96], [22, 1], [36, 0.88]].forEach(function (b) {
+    var a = b[0] * Math.PI / 180, L = 92 * b[1];
+    baby += '<path d="M50 100L' + (50 + L * Math.sin(a)).toFixed(1) + ' ' + (100 - L * Math.cos(a)).toFixed(1) + '" fill="none" stroke="#8FB097" stroke-width="1.1" stroke-linecap="round"/>';
+    [0.62, 0.8, 1].forEach(function (t, k) {
+      var px = 50 + L * Math.sin(a) * t, py = 100 - L * Math.cos(a) * t;
+      baby += '<circle cx="' + (px + 3.4 * Math.cos(a)).toFixed(1) + '" cy="' + (py + 3.4 * Math.sin(a)).toFixed(1) + '" r="' + (k === 2 ? 3.4 : 3) + '"/>';
+      if (k < 2) baby += '<circle cx="' + (px - 3.4 * Math.cos(a)).toFixed(1) + '" cy="' + (py - 3.4 * Math.sin(a)).toFixed(1) + '" r="2.7"/>';
+    });
+  });
   var tul = 'stroke="var(--t3,#B8456A)" stroke-width="1.4" stroke-linejoin="round"';
   var SYMBOLS =
     '<defs>' +
     '<symbol id="rose" viewBox="0 0 100 100">' +
-      petal(5, 0, 26, 19, 20, 23.5, 14.5, 15) +
-      petal(5, 36, 34, 14, 14.5, 32, 10.5, 10.5) +
-      petal(4, 20, 41, 9.5, 9.5, 39.5, 6.5, 6.5) +
+      '<circle cx="50" cy="50" r="41" fill="var(--r3,#B8456A)"/>' +
+      petal(8, 0, 28, 14.5, 17, 25.5, 11, 12.5) +
+      petal(6, 22, 35, 12, 13, 33, 8.8, 9.5) +
+      petal(4, 0, 42, 9, 9, 40.5, 6, 6) +
       '<circle cx="50" cy="50" r="5.5" fill="var(--r2,#E4819B)" stroke="var(--r3,#B8456A)" stroke-width="1.1"/>' +
       '<path d="M50 50a1.5 1.5 0 0 1 3 0a3 3 0 0 1-6 0a4.5 4.5 0 0 1 9 0" fill="none" stroke="var(--r3,#B8456A)" stroke-width="1.6" stroke-linecap="round"/>' +
     '</symbol>' +
@@ -337,11 +421,15 @@ footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-to
       '<path d="M78 20C76 46 68 64 50 74C74 76 90 50 78 20Z" fill="var(--t2,#E4819B)" ' + tul + '/>' +
       '<path d="M50 8C68 24 70 52 50 74C30 52 32 24 50 8Z" fill="var(--t1,#F4AFC0)" ' + tul + '/>' +
       '<path d="M50 16C55 32 55 52 50 68" fill="none" stroke="var(--t3,#B8456A)" stroke-width="1.3" stroke-dasharray="1.5 3.5" stroke-linecap="round"/>' +
+      '<path d="M26 28C27 42 31 54 38 62M74 28C73 42 69 54 62 62" fill="none" stroke="var(--t3,#B8456A)" stroke-width="1.1" stroke-dasharray="1.5 3.5" stroke-linecap="round" opacity=".7"/>' +
+      '<path d="M43 22C40 32 40 44 44 55" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".32"/>' +
     '</symbol>' +
     '<symbol id="daisy" viewBox="0 0 100 100">' +
       petals(12, 0, 'cy="23" rx="8.5" ry="20" fill="var(--d1,#FFFDFA)" stroke="var(--d2,#D9C7BC)" stroke-width="1.3"') +
+      dline(12, 40, 10, 'var(--d2,#D9C7BC)') +
       '<circle cx="50" cy="50" r="13" fill="#F2B632" stroke="#C98F14" stroke-width="1.4"/>' +
       '<circle cx="50" cy="50" r="7" fill="none" stroke="#C98F14" stroke-width="1.2" stroke-dasharray="1.2 2.6" stroke-linecap="round"/>' +
+      '<ellipse cx="46" cy="45" rx="4" ry="2" fill="#fff" opacity=".35"/>' +
     '</symbol>' +
     '<symbol id="sun" viewBox="0 0 100 100">' +
       petals(16, 0, 'cy="17.5" rx="7.5" ry="16.5" fill="#F6B91F" stroke="#C9840A" stroke-width="1.2"') +
@@ -349,15 +437,17 @@ footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-to
       '<circle cx="50" cy="50" r="21" fill="#5A3720" stroke="#3A2412" stroke-width="1.5"/>' +
       '<circle cx="50" cy="50" r="15" fill="none" stroke="#9A6B3E" stroke-width="1.4" stroke-dasharray="1.3 3" stroke-linecap="round"/>' +
       '<circle cx="50" cy="50" r="8" fill="none" stroke="#9A6B3E" stroke-width="1.3" stroke-dasharray="1.2 2.6" stroke-linecap="round"/>' +
+      '<ellipse cx="43" cy="42" rx="7" ry="3" fill="#fff" opacity=".18" transform="rotate(-35 43 42)"/>' +
     '</symbol>' +
     '<symbol id="lav" viewBox="0 0 30 100">' +
       '<path d="M15 100V14" stroke="#6E9B74" stroke-width="1.8" stroke-linecap="round" fill="none"/>' +
       '<g fill="var(--lav,#A98BD6)" stroke="#7457A8" stroke-width="1">' + buds + '<ellipse cx="15" cy="5" rx="3.4" ry="4.2"/></g>' +
     '</symbol>' +
+    '<symbol id="baby" viewBox="0 0 100 100"><g fill="var(--b1,#FFF8F6)" stroke="#DCC8C2" stroke-width=".8">' + baby + '</g></symbol>' +
     '<g id="leafg"><path d="M0 0C10 -9 30 -9 40 0C30 9 10 9 0 0Z" fill="#6E9B74" stroke="#4F7A59" stroke-width=".8"/>' +
     '<path d="M3 0L36 0" stroke="#4F7A59" stroke-width=".8" stroke-dasharray="2 2" fill="none"/></g>' +
     '</defs>';
-  document.getElementById('sym').innerHTML = SYMBOLS;
+  $('sym').innerHTML = SYMBOLS;
 
   /* ---------- colours ---------- */
   var CW = {
@@ -378,13 +468,27 @@ footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-to
   };
 
   /* ---------- bouquet drawing ---------- */
+  function euc(r, len) {
+    var s = '<g transform="translate(200 324) rotate(' + r + ')"><path d="M0 0L0 ' + (-len) + '" stroke="#7A9B82" stroke-width="2.4" stroke-linecap="round" fill="none"/>' +
+      '<g fill="#A9C4AE" stroke="#7A9B82" stroke-width=".9">';
+    for (var k = 1; k <= 5; k++) {
+      var y = -len * (0.25 + k * 0.13);
+      s += '<ellipse cx="-8" cy="' + y + '" rx="8.5" ry="5.2" transform="rotate(-38 -8 ' + y + ')"/>' +
+           '<ellipse cx="8" cy="' + (y - 6) + '" rx="8.5" ry="5.2" transform="rotate(38 8 ' + (y - 6) + ')"/>';
+    }
+    return s + '<ellipse cx="0" cy="' + (-len - 6) + '" rx="5.2" ry="8.5"/></g></g>';
+  }
+
   function bouquet(o) {
     var wr = PAPER[o.paper || 'kraft'];
     var rib = o.ribbon || '#B23A5B', rib2 = o.ribbon2 || '#8E2B47';
     var g = '';
-    [[-158, 3.2], [-132, 3.5], [-48, 3.5], [-22, 3.2]].forEach(function (l) {
+    [[-56, 200], [54, 206], [-28, 240], [30, 244]].forEach(function (e) { g += euc(e[0], e[1]); });
+    [[-158, 3], [-132, 3.2], [-48, 3.2], [-22, 3]].forEach(function (l) {
       g += '<use href="#leafg" transform="translate(200 300) rotate(' + l[0] + ') scale(' + l[1] + ')"/>';
     });
+    g += '<use href="#baby" x="-105" y="-215" width="210" height="215" transform="translate(200 326) rotate(-16)"/>';
+    g += '<use href="#baby" x="-105" y="-215" width="210" height="215" transform="translate(200 326) rotate(18)"/>';
     (o.lav || []).forEach(function (l) {
       var h = l.h || 240, w = h * 0.3;
       g += '<use href="#lav" x="' + (-w / 2) + '" y="' + (-h) + '" width="' + w + '" height="' + h + '" transform="translate(200 324) rotate(' + l.r + ')"/>';
@@ -394,15 +498,23 @@ footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-to
       g += '<path d="M200 326 Q' + (200 + (f.x - 200) * 0.35) + ' ' + ((326 + ay) / 2) + ' ' + f.x + ' ' + ay + '" fill="none" stroke="#5F8A68" stroke-width="5" stroke-linecap="round"/>';
     });
     o.flowers.forEach(function (f, i) {
-      g += '<g class="fl" style="--d:' + (i * 70) + 'ms;' + (f.v || '') + '"><use href="#' + f.s + '" x="' + (f.x - f.w / 2) + '" y="' + (f.y - f.w / 2) + '" width="' + f.w + '" height="' + f.w + '"/></g>';
+      g += '<g class="fl" style="--d:' + (i * 90) + 'ms;' + (f.v || '') + '"><use href="#' + f.s + '" x="' + (f.x - f.w / 2) + '" y="' + (f.y - f.w / 2) + '" width="' + f.w + '" height="' + f.w + '"/></g>';
     });
     g += '<path d="M95 240Q200 275 305 240L222 425Q200 432 178 425Z" fill="' + wr[1] + '"/>';
     g += '<path d="M130 262Q200 285 270 262L215 425Q200 430 185 425Z" fill="' + wr[0] + '"/>';
+    g += '<path d="M130 262Q165 300 192 420L185 425Z" fill="#fff" opacity=".22"/>';
     g += '<path d="M150 300L196 410M250 300L204 410" stroke="' + wr[1] + '" stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" fill="none"/>';
     g += '<path d="M198 348L176 398L191 393L200 404L207 348Z" fill="' + rib2 + '"/>';
     g += '<path d="M200 342C165 308 146 352 196 348Z" fill="' + rib + '"/>';
     g += '<path d="M200 342C235 308 254 352 204 348Z" fill="' + rib + '"/>';
     g += '<circle cx="200" cy="345" r="9" fill="' + rib2 + '"/>';
+    if (o.tag) {
+      g += '<path d="M206 350Q236 360 246 386" fill="none" stroke="' + rib2 + '" stroke-width="1.4"/>' +
+        '<g transform="translate(240 384) rotate(14)"><rect width="54" height="30" rx="4" fill="#FFF8F3" stroke="#D9C2AE"/>' +
+        '<circle cx="6.5" cy="15" r="2.3" fill="none" stroke="#D9C2AE"/>' +
+        '<text x="13" y="13" font-size="7.4" font-family="Karla,sans-serif" font-weight="700" fill="#7D1630">Ivys &amp;</text>' +
+        '<text x="13" y="23" font-size="7.4" font-family="Karla,sans-serif" font-weight="700" fill="#7D1630">Roses</text></g>';
+    }
     return '<svg viewBox="0 0 400 440" role="img" aria-label="' + o.label + '" style="' + (o.vars || '') + '">' + g + '</svg>';
   }
 
@@ -446,25 +558,24 @@ footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-to
       desc: 'Blush roses framed by tall sprigs of crochet lavender.',
       art: function () { return bouquet({ label: 'Bouquet of blush roses with lavender', paper: 'pink', vars: rv('blush'),
         lav: [{ r: -38, h: 240 }, { r: -18, h: 262 }, { r: 3, h: 270 }, { r: 20, h: 258 }, { r: 38, h: 238 }],
-        flowers: [{ s: 'rose', x: 200, y: 172, w: 108 }, { s: 'rose', x: 140, y: 205, w: 96 }, { s: 'rose', x: 262, y: 205, w: 96 }],
+        flowers: [{ s: 'rose', x: 200, y: 172, w: 112 }, { s: 'rose', x: 140, y: 205, w: 100 }, { s: 'rose', x: 262, y: 205, w: 100 }],
         ribbon: CW.lilac.c, ribbon2: '#5B3A82' }); } },
     { id: 'mix', name: 'Garden Mix', sub: 'Roses, tulips and daisies', tint: 'b',
       desc: 'Roses, tulips and daisies together in one bouquet.',
       art: function () { return bouquet({ label: 'Mixed bouquet of crochet roses, tulips and daisies', flowers: [
         { s: 'tulip', x: 128, y: 140, w: 98, v: tv('butter') },
         { s: 'tulip', x: 272, y: 140, w: 98, v: tv('lilac') },
-        { s: 'rose', x: 200, y: 100, w: 104, v: rv('crimson') },
+        { s: 'rose', x: 200, y: 100, w: 108, v: rv('crimson') },
         { s: 'daisy', x: 150, y: 208, w: 82 }, { s: 'daisy', x: 250, y: 208, w: 82 },
-        { s: 'rose', x: 200, y: 204, w: 84, v: rv('peach') }],
+        { s: 'rose', x: 200, y: 204, w: 88, v: rv('peach') }],
         ribbon: CW.peach.c, ribbon2: '#8E3A22' }); } },
     { id: 'single', name: 'Single Stem', sub: '1 crochet rose', tint: 'a',
       desc: 'One rose, wrapped and ribboned. A small gift that lasts.',
       art: function () { return bouquet({ label: 'Single peach crochet rose', paper: 'white', vars: rv('peach'),
-        flowers: [{ s: 'rose', x: 200, y: 150, w: 140 }], ribbon: CW.crimson.a, ribbon2: CW.crimson.b }); } }
+        flowers: [{ s: 'rose', x: 200, y: 150, w: 150 }], ribbon: CW.crimson.a, ribbon2: CW.crimson.b }); } }
   ];
 
   var fmt = function (n) { return '₹' + n.toLocaleString('en-IN'); };
-  var $ = function (id) { return document.getElementById(id); };
 
   /* ---------- hero builder ---------- */
   var state = { n: 5, c: 'blush' };
@@ -476,7 +587,7 @@ footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-to
     b.type = 'button';
     b.dataset.n = n;
     b.textContent = n + ' roses · ' + fmt(PRICE[n]);
-    b.addEventListener('click', function () { state.n = n; drawHero(true); });
+    b.addEventListener('click', function () { state.n = n; drawHero(); });
     seg.appendChild(b);
   });
   Object.keys(CW).forEach(function (k) {
@@ -486,37 +597,66 @@ footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-to
     b.dataset.k = k;
     b.style.setProperty('--c', CW[k].a);
     b.setAttribute('aria-label', CW[k].n);
-    b.addEventListener('click', function () { state.c = k; drawHero(true); });
+    b.addEventListener('click', function () { state.c = k; drawHero(); });
     swWrap.appendChild(b);
   });
 
-  function drawHero(animate) {
+  function tweenPrice(to) {
+    var el = $('price');
+    var from = parseInt(el.dataset.v || to, 10);
+    el.dataset.v = to;
+    $('barPrice').textContent = fmt(to);
+    if (reduce || from === to) { el.textContent = fmt(to); return; }
+    el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+    var t0 = performance.now();
+    (function step(t) {
+      var k = Math.min(1, (t - t0) / 380);
+      el.textContent = fmt(Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3))));
+      if (k < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+
+  function drawHero() {
     var cw = CW[state.c];
     heroArt.innerHTML = bouquet({
       label: state.n + ' ' + cw.n.toLowerCase() + ' crochet roses wrapped in paper',
-      flowers: roses(state.n), vars: rv(state.c), ribbon: cw.c, ribbon2: cw.b
+      flowers: roses(state.n), vars: rv(state.c), ribbon: cw.c, ribbon2: cw.b, tag: true
     });
-    if (animate) heroArt.classList.add('pop');
+    heroArt.classList.add('pop');
     Array.prototype.forEach.call(seg.children, function (b) { b.setAttribute('aria-pressed', String(+b.dataset.n === state.n)); });
     Array.prototype.forEach.call(swWrap.children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.k === state.c)); });
     $('colourName').textContent = cw.n;
-    $('price').textContent = fmt(PRICE[state.n]);
     $('priceSub').textContent = state.n + ' roses, wrapped and ribboned';
+    $('barSub').textContent = state.n + ' roses · ' + cw.n;
+    tweenPrice(PRICE[state.n]);
   }
-  drawHero(false);
+  drawHero();
 
   /* ---------- shelf ---------- */
-  $('grid').innerHTML = B.map(function (b) {
-    return '<article class="card">' +
+  $('grid').innerHTML = B.map(function (b, i) {
+    return '<article class="card rv" style="--rd:' + ((i % 4) * 90) + 'ms">' +
       '<div class="cardart" style="--tint:var(--tint-' + b.tint + ')">' + b.art() + '</div>' +
       '<div class="cardbody">' +
-        '<div class="crow"><h3>' + b.name + '</h3>' +
-        (b.price ? '<span class="cprice">' + fmt(b.price) + '</span>' : '<span class="cprice ask">Price on request</span>') + '</div>' +
+        '<h3>' + b.name + '</h3>' +
+        (b.price ? '<p class="cprice">' + fmt(b.price) + '</p>' : '<p class="cprice ask">Price on request</p>') +
         '<p class="meta">' + b.sub + '</p>' +
         '<p class="desc">' + b.desc + '</p>' +
         '<button class="ghost" type="button" data-id="' + b.id + '">' + (b.price ? 'Order this' : 'Ask about this') + '</button>' +
       '</div></article>';
   }).join('');
+
+  /* swipe dots (phones) */
+  var grid = $('grid'), dots = $('dots');
+  B.forEach(function () { dots.appendChild(document.createElement('span')); });
+  function syncDots() {
+    var c = grid.children[0];
+    if (!c) return;
+    var gap = parseFloat(getComputedStyle(grid).columnGap) || 16;
+    var idx = Math.round(grid.scrollLeft / (c.getBoundingClientRect().width + gap));
+    Array.prototype.forEach.call(dots.children, function (d, k) { d.classList.toggle('on', k === idx); });
+  }
+  grid.addEventListener('scroll', function () { requestAnimationFrame(syncDots); });
+  syncDots();
 
   /* ---------- order form ---------- */
   var selB = $('selB'), selC = $('selC'), nm = $('nm'), note = $('note'), out = $('out');
@@ -542,15 +682,16 @@ footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-to
 
   function toOrder() {
     msg();
-    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     $('order').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
   }
-  $('heroOrder').addEventListener('click', function () {
+  function orderHero() {
     selB.value = state.n === 3 ? 'rose3' : 'rose5';
     selC.value = CW[state.c].n;
     toOrder();
-  });
-  $('grid').addEventListener('click', function (e) {
+  }
+  $('heroOrder').addEventListener('click', orderHero);
+  $('barOrder').addEventListener('click', orderHero);
+  grid.addEventListener('click', function (e) {
     var btn = e.target.closest('button[data-id]');
     if (!btn) return;
     selB.value = btn.dataset.id;
@@ -565,6 +706,39 @@ footer { border-top: 2px dashed var(--line); padding-block: 36px 44px; margin-to
     } catch (err) { fail(); }
   });
   msg();
+
+  /* ---------- motion extras ---------- */
+  var words = ['Hooked by hand', 'Never wilts', 'Made to order', 'Wrapped and ribboned', 'Crochet bouquets'];
+  var one = words.map(function (w) {
+    return '<span>' + w + '<svg width="26" height="26" viewBox="0 0 100 100" style="--r1:#F4AFC0;--r2:#E4819B;--r3:#B8456A"><use href="#rose"/></svg></span>';
+  }).join('');
+  $('track').innerHTML = one + one;
+
+  var pw = $('petals');
+  for (var p = 0; p < 10; p++) {
+    var d = document.createElement('span');
+    d.className = 'petal';
+    d.style.cssText = '--x:' + (Math.random() * 94).toFixed(1) + '%;--s:' + (13 + Math.random() * 15).toFixed(0) + 'px;--t:' +
+      (16 + Math.random() * 14).toFixed(1) + 's;--dl:-' + (Math.random() * 26).toFixed(1) + 's;--dx:' +
+      (-90 + Math.random() * 180).toFixed(0) + 'px;--sp:' + (2.4 + Math.random() * 2.6).toFixed(1) + 's';
+    d.innerHTML = '<svg viewBox="0 0 20 24"><path d="M10 0C20 8 20 18 10 24C0 18 0 8 10 0Z"/></svg>';
+    pw.appendChild(d);
+  }
+
+  var rvEls = document.querySelectorAll('.rv');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    Array.prototype.forEach.call(rvEls, function (el) { io.observe(el); });
+
+    var buyVis = false, ordVis = false;
+    var syncBar = function () { $('bar').classList.toggle('hide', buyVis || ordVis); };
+    new IntersectionObserver(function (es) { buyVis = es[0].isIntersecting; syncBar(); }).observe($('buy'));
+    new IntersectionObserver(function (es) { ordVis = es[0].isIntersecting; syncBar(); }, { threshold: 0.1 }).observe($('order'));
+  } else {
+    Array.prototype.forEach.call(rvEls, function (el) { el.classList.add('in'); });
+  }
 })();
 </script>
 
